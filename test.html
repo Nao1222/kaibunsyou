@@ -4,15 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>怪文書ジェネレーター</title>
-  <!-- Tailwind CSSを読み込み -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fontsを読み込み -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700&family=Yusei+Magic&family=Zen+Maru+Gothic:wght@900&family=Mochiy+Pop+One&family=Kosugi+Maru&display=swap" rel="stylesheet">
   <style>
     body {
-      background-color: #1a202c; /* ダークな背景（黒に近い）に戻す */
+      background-color: #1a202c;
       font-family: sans-serif;
       display: flex;
       justify-content: center;
@@ -26,13 +24,11 @@
       border: none;
       transform: rotate(0);
       filter: none;
-      /* 背景を透過せず、キャンバスの背景色で塗りつぶす */
       background-color: transparent;
     }
 
     #generator-canvas {
-      /* キャンバスのスタイルはCSSで設定 */
-      background-color: #fff8e1; /* キャンバスの背景をクリーム色に変更 */
+      background-color: #fff8e1;
     }
 
     .btn-style {
@@ -55,12 +51,10 @@
       怪文書ジェネレーター
     </h1>
 
-    <!-- テキスト表示エリア (Canvas) -->
     <div id="canvas-container" class="relative w-full flex justify-center items-center rounded-lg overflow-hidden shadow-inner paper-container">
       <canvas id="generator-canvas" width="600" height="400"></canvas>
     </div>
 
-    <!-- テキスト入力フォーム -->
     <div class="space-y-4">
       <div>
         <label for="upperText" class="block text-left text-sm font-bold text-gray-300 mb-1">上段のテキスト</label>
@@ -72,20 +66,16 @@
       </div>
     </div>
     
-    <!-- フォント選択チェックボックス -->
     <div class="space-y-2 mt-4 text-left">
       <span class="text-sm font-bold text-gray-300">使用するフォントを選択してください:</span>
       <div id="font-checkboxes" class="flex flex-wrap gap-4 mt-2">
-        <!-- チェックボックスはJavaScriptで動的に生成 -->
       </div>
     </div>
 
     <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
-        <!-- 見た目を再生成ボタン -->
         <button id="regenerate-appearance-button" class="w-full sm:w-auto px-8 py-4 bg-yellow-400 text-black font-bold text-xl rounded-lg btn-style focus:outline-none focus:ring-4 focus:ring-yellow-400 focus:ring-opacity-50">
             🎨 見た目を再生成
         </button>
-        <!-- 画像保存ボタン -->
         <button id="save-button" class="w-full sm:w-auto px-8 py-4 bg-red-600 text-white font-bold text-xl rounded-lg btn-style focus:outline-none focus:ring-4 focus:ring-red-600 focus:ring-opacity-50">
             画像を保存
         </button>
@@ -102,7 +92,6 @@
       const regenerateAppearanceButton = document.getElementById('regenerate-appearance-button');
       const fontCheckboxesContainer = document.getElementById('font-checkboxes');
       
-      // 使用するフォントの配列を定義
       const allFonts = [
         { name: 'Shippori Mincho B1', weight: '700', size: 70, label: '明朝' },
         { name: 'Yusei Magic', weight: 'normal', size: 68, label: '優雅' },
@@ -111,19 +100,16 @@
         { name: 'Kosugi Maru', weight: 'normal', size: 72, label: 'ゴシック' }
       ];
 
-      // 文字の背景色に使用するカラーパレットを定義（赤色を除く）
       const backgroundColors = [
-        '#FFFFFF', // 白
-        '#E0E0E0', // 薄い灰色
-        '#CCCCCC', // 灰色
-        '#000000', // 黒
+        '#FFFFFF',
+        '#E0E0E0',
+        '#CCCCCC',
+        '#000000',
       ];
 
-      // 各文字の背景色を格納する変数
       let fixedColorsUpper = null;
       let fixedColorsLower = null;
       
-      // チェックボックスを動的に生成
       allFonts.forEach((font, index) => {
         const checkboxDiv = document.createElement('div');
         checkboxDiv.className = 'flex items-center';
@@ -132,7 +118,7 @@
         checkbox.type = 'checkbox';
         checkbox.id = `font-checkbox-${index}`;
         checkbox.className = 'form-checkbox h-5 w-5 text-purple-600';
-        checkbox.checked = true; // デフォルトですべて選択
+        checkbox.checked = true;
         
         const label = document.createElement('label');
         label.htmlFor = `font-checkbox-${index}`;
@@ -145,12 +131,10 @@
         fontCheckboxesContainer.appendChild(checkboxDiv);
         
         checkbox.addEventListener('change', () => {
-          // チェックボックスの変更があったら、フォント情報をリセットして再描画
           drawCanvas();
         });
       });
 
-      // 選択されているフォントのリストを取得する関数
       const getSelectedFonts = () => {
         const selectedFonts = [];
         const checkboxes = fontCheckboxesContainer.querySelectorAll('input[type="checkbox"]');
@@ -159,54 +143,48 @@
             selectedFonts.push(allFonts[index]);
           }
         });
-        // 選択されたフォントが1つもない場合は、全てのフォントを使用
         return selectedFonts.length > 0 ? selectedFonts : allFonts;
       };
 
-      // 定義されたパレットからランダムな色を取得する関数
       const getBackgroundColor = (avoidColor = null) => {
         let newColor;
         do {
           const randomIndex = Math.floor(Math.random() * backgroundColors.length);
           newColor = backgroundColors[randomIndex];
-        } while (newColor === avoidColor); // 避けるべき色と被らないようにする
+        } while (newColor === avoidColor);
         return newColor;
       };
       
-      // Canvasに警告メッセージを描画する関数
       const drawWarning = (message) => {
         ctx.fillStyle = '#fff8e1';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#FF0000'; // 赤色
+        ctx.fillStyle = '#FF0000';
         ctx.font = '24px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(message, canvas.width / 2, canvas.height / 2);
       };
 
-      // テキストを描画する共通関数
       const drawText = (text, yPos, bgColors) => {
         if (!text) return;
         
-        const maxWidth = canvas.width - 60; // 左右の余白を考慮
-        const regularPadding = 8; // 通常のパディング
-        const smallCharPadding = 1; // 句読点などの小さい文字用のパディング
-        const spacing = 10; // 文字間の隙間
+        const maxWidth = canvas.width - 60;
+        const regularPadding = 8;
+        const smallCharPadding = 1;
+        const spacing = 10;
         const selectedFonts = getSelectedFonts();
-        const spaceWidth = 20; // スペースの幅を定義
+        const spaceWidth = 20;
         
-        let charData = []; // 各文字の描画データを格納する配列
+        let charData = [];
         let totalTextWidth = 0;
         let fontSizeMultiplier = 1;
         
-        // 小さい文字かどうかを判定する関数
         const isSmallCharacter = (char) => {
           return ['、', '。', '！', '？', '・'].includes(char);
         };
 
-        // --- 第1段階: 各文字の描画データを準備し、合計幅を計算する ---
         text.split('').forEach((char, index) => {
-          if (char === ' ' || char === '　') { // 全角スペースも追加
+          if (char === ' ' || char === '　') {
             charData.push({ isSpace: true, width: spaceWidth });
             totalTextWidth += spaceWidth + spacing;
           } else {
@@ -225,30 +203,25 @@
           }
         });
         
-        // 最後の文字の隙間は考慮しない
         if (charData.length > 0) {
             totalTextWidth -= spacing;
         }
 
-        // 全体の幅がCanvasを超えている場合、縮小率を計算
         if (totalTextWidth > maxWidth) {
           fontSizeMultiplier = maxWidth / totalTextWidth;
         }
 
         let currentPos = (canvas.width - totalTextWidth * fontSizeMultiplier) / 2;
 
-        // --- 第2段階: 準備したデータを使ってCanvasに描画する ---
         for (let i = 0; i < charData.length; i++) {
           const charInfo = charData[i];
           const adjustedWidth = charInfo.width * fontSizeMultiplier;
 
           if (charInfo.isSpace) {
-            // スペースの場合は描画を完全にスキップし、位置だけ進める
             currentPos += adjustedWidth + spacing * fontSizeMultiplier;
-            continue; // 次のループへ進む
+            continue;
           }
 
-          // 通常の文字の描画
           const { char, font, size, bgWidth, bgColor, bgHeight } = charInfo;
           
           const adjustedFontSize = size * fontSizeMultiplier;
@@ -256,62 +229,48 @@
           const adjustedBgWidth = bgWidth * fontSizeMultiplier;
           const adjustedBgHeight = bgHeight * fontSizeMultiplier;
           
-          // 各文字の描画位置の中心を計算
           const charCenterX = currentPos + adjustedBgWidth / 2;
           
-          // ランダムな位置と回転角度を生成
-          const randomRotation = (Math.random() - 0.5) * 0.8; // -0.4 から 0.4 ラジアンに拡大
-          const randomYOffset = (Math.random() - 0.5) * 15; // -7.5 から 7.5 ピクセルのオフセットに拡大
+          const randomRotation = (Math.random() - 0.5) * 0.8;
+          const randomYOffset = (Math.random() - 0.5) * 15;
 
           ctx.save();
           
-          // Canvasの原点を文字の中心に移動
           ctx.translate(charCenterX, yPos + randomYOffset);
           
-          // ランダムに回転
           ctx.rotate(randomRotation);
           
-          // 背景を描画
           ctx.fillStyle = bgColor;
           const bgX = -adjustedBgWidth / 2;
           const bgY = -adjustedBgHeight / 2;
           ctx.fillRect(bgX, bgY, adjustedBgWidth, adjustedBgHeight);
           
-          // 文字を描画
-          ctx.fillStyle = bgColor === '#000000' ? '#FFFFFF' : '#000000'; // 背景が黒なら白、それ以外は黒
-          // 文字を四角形の中央に配置
+          ctx.fillStyle = bgColor === '#000000' ? '#FFFFFF' : '#000000';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(char, 0, 0);
 
           ctx.restore();
           
-          // 次の文字の開始位置を更新
           currentPos += adjustedBgWidth + spacing * fontSizeMultiplier;
         }
       };
 
-      // Canvasにテキストを描画するメイン関数
       const drawCanvas = () => {
-        // 選択されているフォントの数をチェック
         const selectedFonts = getSelectedFonts();
         if (selectedFonts.length < 2) {
           drawWarning("フォントは2つ以上選択してください");
-          return; // 描画を中断
+          return;
         }
         
-        // キャンバスの背景を塗りつぶし
-        ctx.fillStyle = '#fff8e1'; // キャンバスの背景をクリーム色に変更
+        ctx.fillStyle = '#fff8e1';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 上段と下段のテキストを描画
-        // 新しい背景色を生成
         if (!fixedColorsUpper) {
             fixedColorsUpper = upperTextInput.value.split('').map(() => getBackgroundColor());
         }
         if (!fixedColorsLower) {
             fixedColorsLower = lowerTextInput.value.split('').map((_, index) => {
-                // 上段と同じindexの文字の色を避ける
                 return getBackgroundColor(fixedColorsUpper[index % fixedColorsUpper.length]);
             });
         }
@@ -319,54 +278,43 @@
         drawText(lowerTextInput.value, canvas.height / 2 + 50, fixedColorsLower);
       };
 
-      // 入力フォームの変更を検知してCanvasを再描画
       upperTextInput.addEventListener('input', () => {
-        // テキストが変わったら色も再生成
         fixedColorsUpper = null;
         fixedColorsLower = null;
         drawCanvas();
       });
       lowerTextInput.addEventListener('input', () => {
-        // テキストが変わったら色も再生成
         fixedColorsUpper = null;
         fixedColorsLower = null;
         drawCanvas();
       });
 
-      // 初期描画
       drawCanvas();
 
-      // 見た目を再生成ボタンのクリックイベント
       regenerateAppearanceButton.addEventListener('click', () => {
-        // フォントと色の両方の情報をリセットして再描画
         fixedColorsUpper = null;
         fixedColorsLower = null;
         drawCanvas();
       });
 
-      // 画像保存ボタンのクリックイベント
       saveButton.addEventListener('click', () => {
         const selectedFonts = getSelectedFonts();
         if (selectedFonts.length < 2) {
           drawWarning("フォントは2つ以上選択してください");
-          return; // 描画を中断
+          return;
         }
         
-        // まず、背景を透明にして描画
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawText(upperTextInput.value, canvas.height / 2 - 50, fixedColorsUpper);
         drawText(lowerTextInput.value, canvas.height / 2 + 50, fixedColorsLower);
         
-        // PNG画像としてデータを取得
         const imageURL = canvas.toDataURL('image/png');
         
-        // キャンバスの背景を元の色に戻す (表示用)
         ctx.fillStyle = '#fff8e1';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         drawText(upperTextInput.value, canvas.height / 2 - 50, fixedColorsUpper);
         drawText(lowerTextInput.value, canvas.height / 2 + 50, fixedColorsLower);
         
-        // 画像をダウンロード
         const link = document.createElement('a');
         link.href = imageURL;
         link.download = 'kaibunsho.png';
